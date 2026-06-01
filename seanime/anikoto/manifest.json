@@ -27,6 +27,19 @@
           { "value": "https://anikoto.net", "label": "anikoto.net" },
           { "value": "https://anikototv.se", "label": "anikototv.se" }
         ]
+      },
+      {
+        "type": "select",
+        "name": "preferred_quality",
+        "label": "Preferred Quality",
+        "default": "Auto",
+        "options": [
+          { "value": "Auto", "label": "Auto (Adaptive)" },
+          { "value": "1080p", "label": "1080p" },
+          { "value": "720p", "label": "720p" },
+          { "value": "480p", "label": "480p" },
+          { "value": "360p", "label": "360p" }
+        ]
       }
     ]
   }
