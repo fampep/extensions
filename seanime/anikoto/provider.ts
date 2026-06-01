@@ -302,13 +302,77 @@ class Provider {
     private async resolveServer(linkId: string, serverName: string, ctx: Ctx): Promise<EpisodeServer> {
         const got = await this.fetchSources(linkId)
         if (!got?.file) throw new Error(`[anikoto] could not resolve stream URL for linkId ${linkId}`)
+        
         const subtitles = await this.buildSubtitles(got.tracks, ctx)
         this.fireWarmEpisode(ctx, got.tracks)
-        return {
-            server:       serverName,
-            headers:      { Referer: `${got.origin}/`, Origin: got.origin },
-            videoSources: [{ url: got.file, type: "m3u8", quality: "default", subtitles }],
+
+        const headers = { Referer: `${got.origin}/`, Origin: got.origin }
+        let videoSources: any[] = []
+
+        try {
+            // Fetch the master manifest to map out multiple resolutions
+            const manifestRes = await fetch(got.file, { headers, timeout: 8 })
+            if (manifestRes.ok) {
+                const manifestText = manifestRes.text()
+                videoSources = this.parseM3U8Qualities(manifestText, got.file, subtitles)
+            }
+        } catch (_e) {}
+
+        // Fallback safely to "default" if parsing found no qualitative segments or crashed
+        if (videoSources.length === 0) {
+            videoSources.push({ url: got.file, type: "m3u8", quality: "default", subtitles })
         }
+
+        return {
+            server: serverName,
+            headers,
+            videoSources,
+        }
+    }
+
+    private parseM3U8Qualities(manifest: string, masterUrl: string, subtitles: VideoSubtitle[]): any[] {
+        const sources: any[] = []
+        const lines = manifest.split(/\r?\n/)
+        const baseUrl = masterUrl.substring(0, masterUrl.lastIndexOf("/"))
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim()
+            if (line.startsWith("#EXT-X-STREAM-INF")) {
+                // Match resolution height attribute (e.g., RESOLUTION=1920x1080)
+                const resMatch = line.match(/RESOLUTION=\d+x(\d+)/i)
+                const qualityLabel = resMatch ? `${resMatch[1]}p` : "Adaptive"
+
+                // The next non-empty line contains the sub-manifest URL
+                let nextLine = ""
+                while (i + 1 < lines.length) {
+                    i++
+                    nextLine = lines[i].trim()
+                    if (nextLine && !nextLine.startsWith("#")) break
+                }
+
+                if (nextLine) {
+                    let absoluteStreamUrl = nextLine
+                    if (!nextLine.startsWith("http://") && !nextLine.startsWith("https://")) {
+                        absoluteStreamUrl = nextLine.startsWith("/") 
+                            ? `${this.originOf(masterUrl)}${nextLine}`
+                            : `${baseUrl}/${nextLine}`
+                    }
+                    sources.push({
+                        url: absoluteStreamUrl,
+                        type: "m3u8",
+                        quality: qualityLabel,
+                        subtitles,
+                    })
+                }
+            }
+        }
+
+        // Include the root adaptive manifest file as an option too
+        if (sources.length > 0) {
+            sources.unshift({ url: masterUrl, type: "m3u8", quality: "Auto", subtitles })
+        }
+
+        return sources
     }
 
     private async isPlayable(server: EpisodeServer): Promise<boolean> {
@@ -344,7 +408,7 @@ class Provider {
         if (!dataId) { const m = ehtml.match(/data-id="([^"]+)"/); if (m) dataId = m[1] }
         if (!dataId) return undefined
 
-        const srcRes = await this.fetchRetry(
+        const srcRes = await fetch(
             `${origin}/stream/getSources?id=${encodeURIComponent(dataId)}`,
             { headers: { Referer: embedUrl, "X-Requested-With": "XMLHttpRequest" }, timeout: 12 }
         )
