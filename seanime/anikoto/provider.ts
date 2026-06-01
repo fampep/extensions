@@ -8,7 +8,8 @@ type SourceResult = { origin: string; file?: string; tracks?: Track[] }
 // ─────────────────────────────────────────────────────────────────────────────
 
 class Provider {
-    private baseUrl = "{{baseUrl}}"
+    private baseUrl          = "{{baseUrl}}"
+    private preferredQuality = "{{preferred_quality}}" 
     private mirrors = [
         "https://anikototv.to",
         "https://anikoto.cz",
@@ -322,6 +323,20 @@ class Provider {
         if (videoSources.length === 0) {
             videoSources.push({ url: got.file, type: "m3u8", quality: "default", subtitles })
         }
+
+        // ─── NEW: Apply Quality Preference Sorting ───────────────────────────
+        const targetQuality = (typeof this.preferredQuality !== "undefined" && !this.preferredQuality.startsWith("{{")) 
+            ? this.preferredQuality 
+            : "Auto";
+
+        if (targetQuality !== "Auto") {
+            const matchedSource = videoSources.find((src) => src.quality === targetQuality)
+            if (matchedSource) {
+                // Shift preferred stream to index [0] so the media player forces it first
+                videoSources = [matchedSource, ...videoSources.filter((src) => src.quality !== targetQuality)]
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         return {
             server: serverName,
