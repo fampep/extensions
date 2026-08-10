@@ -1,14 +1,14 @@
 {
   "id": "anikoto",
   "name": "Anikoto",
-  "version": "1.3.20",
+  "version": "1.4.0",
   "manifestURI": "https://raw.githubusercontent.com/fampep/extensions/main/seanime/anikoto/manifest.json",
   "language": "typescript",
   "type": "onlinestream-provider",
-  "description": "Only anikoto compatibility layer you'll ever need",
+  "description": "Anikoto site scrape → MegaPlay sources, with soft subtitles and cookie-jar sessions",
   "author": "fampep",
   "icon": "https://raw.githubusercontent.com/fampep/extensions/main/seanime/anikoto/icon.png",
-  "website": "https://anikototv.to",
+  "website": "https://anikoto.cz",
   "lang": "en",
   "payloadURI": "https://raw.githubusercontent.com/fampep/extensions/main/seanime/anikoto/provider.ts",
   "userConfig": {
@@ -19,10 +19,10 @@
         "type": "select",
         "name": "baseUrl",
         "label": "Site / mirror domain",
-        "default": "https://anikototv.to",
+        "default": "https://anikoto.cz",
         "options": [
-          { "value": "https://anikototv.to", "label": "anikototv.to" },
           { "value": "https://anikoto.cz", "label": "anikoto.cz" },
+          { "value": "https://anikototv.to", "label": "anikototv.to" },
           { "value": "https://anikoto.me", "label": "anikoto.me" },
           { "value": "https://anikoto.net", "label": "anikoto.net" },
           { "value": "https://anikototv.se", "label": "anikototv.se" }
