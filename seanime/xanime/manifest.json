@@ -1,0 +1,43 @@
+{
+  "id": "xanime",
+  "name": "XAnime",
+  "version": "1.0.0",
+  "manifestURI": "https://raw.githubusercontent.com/fampep/extensions/main/seanime/xanime/manifest.json",
+  "language": "typescript",
+  "type": "onlinestream-provider",
+  "description": "XAnime (xanime.me) — direct HLS from the site's GraphQL API, with soft subtitles",
+  "author": "fampep",
+  "icon": "https://raw.githubusercontent.com/fampep/extensions/main/seanime/xanime/icon.png",
+  "website": "https://xanime.me",
+  "lang": "en",
+  "payloadURI": "https://raw.githubusercontent.com/fampep/extensions/main/seanime/xanime/provider.ts",
+  "userConfig": {
+    "version": 1,
+    "requiresConfig": false,
+    "fields": [
+      {
+        "type": "select",
+        "name": "baseUrl",
+        "label": "Site domain",
+        "default": "https://xanime.me",
+        "options": [
+          { "value": "https://xanime.me", "label": "xanime.me" },
+          { "value": "https://www.xanime.me", "label": "www.xanime.me" }
+        ]
+      },
+      {
+        "type": "select",
+        "name": "preferred_quality",
+        "label": "Preferred Quality",
+        "default": "Auto",
+        "options": [
+          { "value": "Auto", "label": "Auto (Adaptive)" },
+          { "value": "1080p", "label": "1080p" },
+          { "value": "720p", "label": "720p" },
+          { "value": "480p", "label": "480p" },
+          { "value": "360p", "label": "360p" }
+        ]
+      }
+    ]
+  }
+}
